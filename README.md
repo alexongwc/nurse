@@ -16,16 +16,27 @@ The pipeline is designed to maximize staff satisfaction and roster efficiency in
 
 NURSE/
 ├── data/ # Raw and processed datasets
+│ ├── data.csv
+│ ├── datapreference.csv
+│ ├── edges_for_gat.csv
+│ └── ...
 ├── notebook/ # EDA, experiments, cookbooks
+│ └── ...
 ├── src/
 │ ├── dataprep/ # Data cleaning and feature engineering
+│ │ ├── dataprep.py
+│ │ ├── feature_engineering.py
+│ │ ├── graphconstruction.py
+│ │ └── traintestsplit.py
 │ ├── inference/ # Post-model assignment/OR-Tools logic
-│ ├── model/ # GAT and training code
+│ │ └── ...
+│ ├── model/ # GAT model and training code
+│ │ └── ...
 │ └── utils/ # Evaluation metrics, helpers
+│ └── ...
 ├── architecture.png # Project pipeline diagram
 ├── config.yaml # Project configuration
-├── README.md # This file
-
+└── README.md
 ---
 
 ## Workflow
