@@ -1,9 +1,12 @@
+# pipeline.py
+# pipeline.py
+
 import pandas as pd
 import yaml
 import os
+import itertools
 
 from src.preprocessing.feature_engineering import feature_engineering
-from src.preprocessing.traintestsplit import split_schedule_and_preferences
 from src.preprocessing.graphconstruction import build_graph
 from src.model.model import train_gat, predict_gat
 
@@ -16,15 +19,44 @@ with open("config.yaml", "r") as f:
 
 DATA_DIR = "data"
 
-# --- Step 1: Data prep ---
+# --- Step 1: Data prep (all history for training) ---
 df = pd.read_csv(cfg['paths']['combined_csv'])
 df['date'] = pd.to_datetime(df['date'])
 df = feature_engineering(df)
+train_assigned = df[df['label'] == 1].copy()
 
-# --- Step 2: Train-test split ---
-train_assigned, test_assigned, train_pref, test_pref = split_schedule_and_preferences(
-    df, test_weeks=cfg['split']['test_weeks']
-)
+# --- Step 2: Generate candidates for live period (preference.csv) ---
+PREFERENCE_CSV = os.path.join(DATA_DIR, "preference.csv")
+pref_df = pd.read_csv(PREFERENCE_CSV)
+pref_df['date'] = pd.to_datetime(pref_df['date'])
+
+# Standardize column names for easier downstream processing
+pref_df = pref_df.rename(columns={
+    'preferred_shift': 'shift',
+    'preferred_ward': 'ward'
+})
+
+shift_cols = ['date', 'shift', 'ward', 'start_time', 'end_time', 'duration_hours']
+shifts_for_window = pref_df[shift_cols].drop_duplicates().reset_index(drop=True)
+
+nurse_list = df['nurse_id'].unique()
+
+candidates = list(itertools.product(nurse_list, shifts_for_window.index))
+candidate_df = pd.DataFrame(candidates, columns=['nurse_id', 'shift_idx'])
+candidate_df = candidate_df.merge(shifts_for_window, left_on='shift_idx', right_index=True, how='left')
+
+# Optionally flag if nurse actually requested this shift
+def is_preferred(row):
+    return ((pref_df['nurse_id'] == row['nurse_id']) &
+            (pref_df['date'] == row['date']) &
+            (pref_df['shift'] == row['shift']) &
+            (pref_df['ward'] == row['ward'])).any()
+
+candidate_df['is_preferred'] = candidate_df.apply(is_preferred, axis=1)
+candidate_df['label'] = 0  # All are unassigned (candidate edges)
+
+test_assigned = candidate_df
+print(f"Generated {test_assigned.shape[0]} candidate nurse-shift edges for live scheduling.")
 
 # --- Step 3: Graph construction (saves nurse/shift maps) ---
 train_graph = build_graph(train_assigned, save_mapping_dir=DATA_DIR)
@@ -41,7 +73,7 @@ gat_model = train_gat(
     lr=cfg['model']['gat_lr']
 )
 
-# --- Step 5: Predict test edges ---
+# --- Step 5: Predict on all candidates for live window ---
 gat_scores = predict_gat(gat_model, test_graph)
 print("Type of gat_scores:", type(gat_scores))
 print("Shape of gat_scores:", getattr(gat_scores, "shape", "No shape attr"))
