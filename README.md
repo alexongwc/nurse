@@ -37,8 +37,7 @@ The pipeline is designed to maximize staff satisfaction and roster efficiency in
 
 ## Key Files & Scripts
 
-- `src/dataprep/graphconstruction.py` – Builds PyTorch Geometric graphs from tabular data.
-- `src/dataprep/feature_engineering.py` – Adds features like hours worked, days since last shift, etc.
-- `src/model/gat.py` – GAT model definition.
-- `src/inference/googleor.py` – OR-Tools assignment logic using GAT outputs.
-- `src/utils/metrics.py` – Evaluation and reporting tools.
+- `src/preprocessing/graphconstruction.py` – Builds PyTorch Geometric graphs from tabular data.
+- `src/preprocessing/feature_engineering.py` – Adds features like hours worked, days since last shift, etc.
+- `src/model/model.py` – GAT model definition.
+- `src/postprocessing/assignmentsolver.py` – OR-Tools assignment logic using GAT outputs.
