@@ -1,12 +1,11 @@
 paths:
-  combined_csv: "data/combined.csv"
-  output_features_csv: "../data/edges_for_gat_features.csv"
-
+  data_dir: data
+  combined_csv: data/combined.csv
+  preference_csv: data/preference.csv
 model:
-  gat_hidden_dim: 16      # GATConv hidden channels
-  gat_heads: 2           # Number of attention heads
-  gat_epochs: 100        # Number of training epochs
-  gat_lr: 0.01           # Learning rate
-
-split:
-  test_weeks: 2          # Number of weeks to hold out for test set
+  gat_hidden_dim: 16
+  gat_heads: 2
+  gat_epochs: 100
+  gat_lr: 0.01
+hours_per_fortnight: 80
+preference_weight: 2.0

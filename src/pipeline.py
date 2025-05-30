@@ -12,6 +12,7 @@ from src.model.model import train_gat, predict_gat
 
 from src.postprocessing.postprocessing import prepare_edges_for_assignment
 from src.postprocessing.assignmentsolver import solve_assignment
+from src.postprocessing.metrics import evaluate_preference_match
 
 # --- Load config ---
 with open("config.yaml", "r") as f:
@@ -102,3 +103,10 @@ final_assignment_path = solve_assignment(
     output_assignment_path=os.path.join(DATA_DIR, "assignment_ui_output.csv")
 )
 print(f"Final UI assignment output: {final_assignment_path}")
+# --- Step 9: Compute preference metrics -- 
+
+evaluate_preference_match(
+    assignment_path=final_assignment_path,
+    preference_path=os.path.join(DATA_DIR, "preference.csv"),
+    output_path=os.path.join(DATA_DIR, "metric.csv")
+)
